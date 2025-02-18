@@ -5,7 +5,7 @@ import { Select, SelectOption } from "../../primitives/Select";
 import { questionTypes } from "../../../constants/questions";
 import { SelectChangeEvent, Typography } from "@mui/material";
 import useAutoSave from "../../../hooks/useAutoSave";
-import { updateQuestion } from "../../../services/question";
+import { deleteQuestion, updateQuestion } from "../../../services/question";
 import {
   Accordion,
   AccordionDetails,
@@ -20,10 +20,11 @@ import NumberRangeSection from "./NumberRangeSection";
 import CheckBoxControl from "../../composites/CheckBoxControl";
 import { toast } from "react-toastify";
 import { validateQuestion } from "../../../validations/question-box-validation";
-import IconButton from "../../primitives/IconButton";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import Loader from "../../primitives/Loader";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { successToast } from "../../primitives/Toast";
 
 interface IQuestionBox {
   currentQuestion: IQuestion;
@@ -32,6 +33,7 @@ interface IQuestionBox {
 
 const QuestionBox = ({ currentQuestion, refetchQuestions }: IQuestionBox) => {
   const [question, setQuestion] = useState<IQuestion>({ ...currentQuestion });
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(
     !!currentQuestion.newQuestion
   );
@@ -44,13 +46,20 @@ const QuestionBox = ({ currentQuestion, refetchQuestions }: IQuestionBox) => {
     });
 
     if (Object.keys(error).length > 0) {
-      console.log(error);
       return;
     }
 
     await updateQuestion(question);
     await refetchQuestions();
-    toast("saved");
+    successToast("Question Updated");
+  };
+
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    await deleteQuestion(id);
+    await refetchQuestions();
+    setIsDeleting(false);
+    successToast("Question Deleted");
   };
 
   const { isSaving } = useAutoSave({
@@ -100,7 +109,9 @@ const QuestionBox = ({ currentQuestion, refetchQuestions }: IQuestionBox) => {
       sx={{ boxShadow: "none" }}
       className="mb-8 mx-auto border"
       expanded={isExpanded}
-      onChange={() => setIsExpanded(!isExpanded)}
+      onChange={() => {
+        setIsExpanded(!isExpanded);
+      }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <div className="flex w-full flex-wrap items-center justify-between">
@@ -108,14 +119,33 @@ const QuestionBox = ({ currentQuestion, refetchQuestions }: IQuestionBox) => {
             {question.formLabel || `Question ${question.order}`}
           </Typography>
           <span>
-            {isSaving ? (
-              <Loader size={20} />
-            ) : !errors ? (
-              <CheckCircleIcon color="success" />
+            {isExpanded ? (
+              isSaving ? (
+                <Loader size={20} />
+              ) : !errors ? (
+                <CheckCircleIcon color="success" />
+              ) : (
+                <>
+                  <CancelIcon color="error" />
+                </>
+              )
             ) : (
-              <>
-                <CancelIcon color="error" />
-              </>
+              <div>
+                <span>
+                  {isDeleting ? (
+                    <Loader size={20} />
+                  ) : (
+                    <DeleteIcon
+                      color="error"
+                      className="hover:bg-red-100 hover:rounded-xl p-0.5"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await handleDelete(question.id);
+                      }}
+                    />
+                  )}
+                </span>
+              </div>
             )}
           </span>
         </div>

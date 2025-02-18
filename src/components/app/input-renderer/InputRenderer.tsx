@@ -78,7 +78,6 @@ const InputRenderer = ({
             name={question.id}
             multiple={question.multiSelect}
             onChange={(e) => {
-              console.log(e.target.value);
               handleChange(question.id, e.target.value);
             }}
           >

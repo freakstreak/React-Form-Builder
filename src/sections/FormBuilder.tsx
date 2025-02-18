@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { InputTypeEnum, IQuestion } from "../types/IQuestion";
-import { createQuestion, getQuestions } from "../services/question";
+import {
+  createQuestion,
+  deleteQuestion,
+  getQuestions,
+} from "../services/question";
 import QuestionBox from "../components/app/questions/QuestionBox";
 import Button from "../components/primitives/Button";
 import { v4 as uuidv4 } from "uuid";
 import Typography from "../components/primitives/Typography";
+import { successToast } from "../components/primitives/Toast";
 
 interface IFromBuilder {
   loading: boolean;
@@ -38,6 +43,8 @@ const FormBuilder = ({
     response[response.length - 1].newQuestion = true;
     setQuestions(response);
     setAddingQuestion(false);
+
+    successToast("Question added successfully");
   };
 
   return (

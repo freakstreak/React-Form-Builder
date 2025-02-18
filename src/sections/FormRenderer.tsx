@@ -9,9 +9,13 @@ import FormControl from "../components/primitives/FormControl";
 import InputLabel from "../components/primitives/InputLabel";
 import InputRenderer from "../components/app/input-renderer/InputRenderer";
 import { validateRenderedForm } from "../validations/rendered-form-validation";
+import Modal from "../components/primitives/Modal";
+import Previewer from "../components/app/input-renderer/Previewer";
+import CloseIcon from "@mui/icons-material/Close";
 
 const FormRenderer = ({ questions }: { questions: IQuestion[] }) => {
   const [errors, setErrors] = useState<any>(null);
+  const [previewAnswer, setPreviewAnswer] = useState(false);
   const [formData, setFormData] = React.useState<any>(
     prepareFormData(questions)
   );
@@ -26,11 +30,10 @@ const FormRenderer = ({ questions }: { questions: IQuestion[] }) => {
     const validationErrors = validateRenderedForm(formData, questions);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      console.log(validationErrors);
       return;
     }
 
-    console.log("data");
+    setPreviewAnswer(true);
   };
 
   return (
@@ -58,6 +61,17 @@ const FormRenderer = ({ questions }: { questions: IQuestion[] }) => {
           <Typography>Create Questions to Render</Typography>
         )}
       </form>
+      <Modal open={previewAnswer} onClose={() => setPreviewAnswer(false)}>
+        <div className="p-8">
+          <div className="flex justify-between items-center">
+            <Typography variant="h6">Submission Preview</Typography>
+            <span onClick={() => setPreviewAnswer(false)}>
+              <CloseIcon className="cursor-pointer" />
+            </span>
+          </div>
+          <Previewer formData={formData} questions={questions} />
+        </div>
+      </Modal>
     </div>
   );
 };
